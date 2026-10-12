@@ -1,0 +1,30 @@
+
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d testdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      db_host: db
+      db_port: "5432"
+      db_user: testuser
+      db_pwd: testpass
+      db_name: testdb
+    volumes:
+      - .:/app
+    command: ["pytest", "-q"]
